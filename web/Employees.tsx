@@ -224,6 +224,7 @@ const Users: React.FC = () => {
         rows={employees}
         columns={columns}
         autoHeight
+        disableColumnFilter
         onFilterModelChange={e => setKeyword(e.quickFilterValues?.[0])}
         onSortModelChange={e => setSortModel(e[0])}
         filterMode='server'
