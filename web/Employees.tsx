@@ -57,6 +57,7 @@ const Users: React.FC = () => {
   const [employeesCount, setEmployeesCount] = useState(0)
   const [employees, setEmployees] = useState<Emplyee[]>([])
   const [sortModel, setSortModel] = useState<GridSortItem>()
+  const [keyword, setKeyword] = useState<string>()
   const [avatar, setAvatar] = useState<string | null>(null)
   const [avatarId, setAvatarId] = useState<number>()
   const [isLoading, setLoading] = useState(true)
@@ -74,6 +75,7 @@ const Users: React.FC = () => {
         url += `&sort=${sortModel.field}`
         if (sortModel.sort) url += `,${sortModel.sort}`
       }
+      if (keyword) url += `&keyword=${keyword}`
       const data: PageData = await fetch(url).then(it => it.json())
       setEmployees(data.content)
       setEmployeesCount(data.totalElements)
@@ -84,10 +86,10 @@ const Users: React.FC = () => {
     }
   }
 
-  useEffect(() => { fetchData() }, [paginationModel, sortModel])
+  useEffect(() => { fetchData() }, [paginationModel, sortModel, keyword])
 
   const columns: GridColDef<Emplyee>[] = [
-    { field: 'staffId', headerName: 'ID', width: 50 },
+    { field: 'staffId', headerName: 'ID', width: 50, filterable: false },
     {
       field: 'staffPicture',
       headerName: '头像',
@@ -116,7 +118,8 @@ const Users: React.FC = () => {
       headerName: '年龄',
       width: 70,
       type: 'number',
-      editable: true
+      editable: true,
+      filterable: false
     },
     {
       field: 'staffGender',
@@ -124,7 +127,8 @@ const Users: React.FC = () => {
       width: 50,
       valueGetter: ({ value }) => GENDER_MAP.includes(value) ? value : GENDER_MAP[(value % 2) || 0],
       editable: true,
-      valueParser: mapGender
+      valueParser: mapGender,
+      filterable: false
     },
     {
       field: 'staffEducation',
@@ -220,9 +224,9 @@ const Users: React.FC = () => {
         rows={employees}
         columns={columns}
         autoHeight
-        // onFilterModelChange={console.log}
+        onFilterModelChange={e => setKeyword(e.quickFilterValues?.[0])}
         onSortModelChange={e => setSortModel(e[0])}
-        // filterMode='server'
+        filterMode='server'
         sortingMode='server'
         paginationMode='server'
         paginationModel={paginationModel}
@@ -234,6 +238,12 @@ const Users: React.FC = () => {
         sx={{ border: 0 }}
         getRowId={it => it.staffId}
         slots={{ toolbar: GridToolbar }}
+        slotProps={{
+          toolbar: {
+            showQuickFilter: true,
+            quickFilterProps: { debounceMs: 500 }
+          }
+        }}
         onRowSelectionModelChange={setSelected as any}
         rowSelectionModel={selected}
         loading={isLoading}

@@ -16,8 +16,8 @@ public final class EmployeeService {
         this.employeeDao = employeeDao;
     }
 
-    public Page<Employee> getAllEmployees(Pageable pageable) {
-        return employeeDao.findAll(pageable);
+    public Page<Employee> getAllEmployees(Pageable pageable, String keyword) {
+        return keyword == null ? employeeDao.findAll(pageable) : employeeDao.findAll(keyword, pageable);
     }
 
     public void deleteEmployees(Iterable<Integer> ids) {

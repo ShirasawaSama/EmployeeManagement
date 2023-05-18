@@ -21,9 +21,9 @@ public final class EmployeeController {
     }
 
     @GetMapping(value = "/employees")
-    public Page<Employee> getAllEmployees(Pageable pageable) {
+    public Page<Employee> getAllEmployees(Pageable pageable, @RequestParam(required = false) String keyword) {
         try {
-            return service.getAllEmployees(pageable);
+            return service.getAllEmployees(pageable, keyword);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
