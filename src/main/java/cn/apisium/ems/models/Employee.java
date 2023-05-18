@@ -9,12 +9,12 @@ import lombok.Data;
 public final class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer staff_id;
-    private String staff_name;
-    private int staff_age;
-    private int staff_gender;
-    private String staff_picture;
-    private String staff_education;
-    private String staff_department;
-    private String staff_job;
+    private Integer staffId;
+    private String staffName;
+    private int staffAge;
+    private int staffGender;
+    private String staffPicture;
+    private String staffEducation;
+    private String staffDepartment;
+    private String staffJob;
 }

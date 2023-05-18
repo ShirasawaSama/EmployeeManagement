@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { alpha } from '@mui/material/styles'
 import { useSnackbar, SnackbarKey } from 'notistack'
-import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid'
+import { DataGrid, GridColDef, GridToolbar, GridSortItem } from '@mui/x-data-grid'
 import Avatar from './Avatar'
 import AvatarEditor from 'react-avatar-edit'
 import Paper from '@mui/material/Paper'
@@ -17,15 +17,33 @@ import DialogActions from '@mui/material/DialogActions'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
 
-export interface Emplyee {
-  staff_id: number
-  staff_name: string
-  staff_age: number
-  staff_gender: number
-  staff_picture: string
-  staff_education: string
-  staff_department: string
-  staff_job: string
+interface Emplyee {
+  staffId: number
+  staffName: string
+  staffAge: number
+  staffGender: number
+  staffPicture: string
+  staffEducation: string
+  staffDepartment: string
+  staffJob: string
+}
+
+interface PageData {
+  content: Emplyee[]
+  totalElements: number
+  totalPages: number
+  size: number
+  number: number
+  pageable: {
+    offset: number
+    pageNumber: number
+    pageSize: number
+    sort: {
+      sorted: boolean
+      unsorted: boolean
+      empty: boolean
+    }
+  }
 }
 
 const GENDER_MAP = ['女', '男']
@@ -36,7 +54,9 @@ const mapGender = (value: string) => {
 }
 
 const Users: React.FC = () => {
+  const [employeesCount, setEmployeesCount] = useState(0)
   const [employees, setEmployees] = useState<Emplyee[]>([])
+  const [sortModel, setSortModel] = useState<GridSortItem>()
   const [avatar, setAvatar] = useState<string | null>(null)
   const [avatarId, setAvatarId] = useState<number>()
   const [isLoading, setLoading] = useState(true)
@@ -46,53 +66,60 @@ const Users: React.FC = () => {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar()
   const numSelected = selected.length
 
-  const fetchData = () => {
+  const fetchData = async () => {
     setLoading(true)
-    return fetch('/api/employees').then(it => it.json()).then(it => {
-      setEmployees(it)
+    try {
+      let url = `/api/employees?page=${paginationModel.page}&size=${paginationModel.pageSize}`
+      if (sortModel != null) {
+        url += `&sort=${sortModel.field}`
+        if (sortModel.sort) url += `,${sortModel.sort}`
+      }
+      const data: PageData = await fetch(url).then(it => it.json())
+      setEmployees(data.content)
+      setEmployeesCount(data.totalElements)
       setLoading(false)
-    }).catch(e => {
+    } catch (e) {
       console.error(e)
       enqueueSnackbar('获取数据失败!', { variant: 'error' })
-    })
+    }
   }
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => { fetchData() }, [paginationModel, sortModel])
 
   const columns: GridColDef<Emplyee>[] = [
-    { field: 'staff_id', headerName: 'ID', width: 50 },
+    { field: 'staffId', headerName: 'ID', width: 50 },
     {
-      field: 'staff_picture',
+      field: 'staffPicture',
       headerName: '头像',
       width: 60,
       disableColumnMenu: true,
       filterable: false,
       hideSortIcons: true,
-      renderCell: ({ row }) => (<Avatar
+      renderCell: ({ row, value }) => (<Avatar
         sx={{ cursor: 'pointer' }}
-        alt={row.staff_name}
-        src={row.staff_picture}
+        alt={row.staffName}
+        src={value}
         onClick={() => {
           setAvatar(null)
-          setAvatarId(row.staff_id)
+          setAvatarId(row.staffId)
         }}
       />)
     },
     {
-      field: 'staff_name',
+      field: 'staffName',
       headerName: '姓名',
       width: 120,
       editable: true
     },
     {
-      field: 'staff_age',
+      field: 'staffAge',
       headerName: '年龄',
       width: 70,
       type: 'number',
       editable: true
     },
     {
-      field: 'staff_gender',
+      field: 'staffGender',
       headerName: '性别',
       width: 50,
       valueGetter: ({ value }) => GENDER_MAP.includes(value) ? value : GENDER_MAP[(value % 2) || 0],
@@ -100,19 +127,19 @@ const Users: React.FC = () => {
       valueParser: mapGender
     },
     {
-      field: 'staff_education',
+      field: 'staffEducation',
       headerName: '学历',
       width: 200,
       editable: true
     },
     {
-      field: 'staff_department',
+      field: 'staffDepartment',
       headerName: '部门',
       width: 200,
       editable: true
     },
     {
-      field: 'staff_job',
+      field: 'staffJob',
       headerName: '职位',
       width: 200,
       editable: true
@@ -193,19 +220,25 @@ const Users: React.FC = () => {
         rows={employees}
         columns={columns}
         autoHeight
+        // onFilterModelChange={console.log}
+        onSortModelChange={e => setSortModel(e[0])}
+        // filterMode='server'
+        sortingMode='server'
+        paginationMode='server'
         paginationModel={paginationModel}
+        rowCount={employeesCount}
         onPaginationModelChange={setPaginationModel}
         pageSizeOptions={[5, 10, 20]}
         checkboxSelection
         disableRowSelectionOnClick
         sx={{ border: 0 }}
-        getRowId={it => it.staff_id}
+        getRowId={it => it.staffId}
         slots={{ toolbar: GridToolbar }}
         onRowSelectionModelChange={setSelected as any}
         rowSelectionModel={selected}
         loading={isLoading}
         processRowUpdate={async e => {
-          if (typeof e.staff_gender === 'string') e.staff_gender = mapGender(e.staff_gender || '0') || 0
+          if (typeof e.staffGender === 'string') e.staffGender = mapGender(e.staffGender || '0') || 0
           await fetch('/api/employee', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },

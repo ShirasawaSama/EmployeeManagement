@@ -6,6 +6,8 @@ import cn.apisium.ems.data.Result;
 import cn.apisium.ems.models.Employee;
 import cn.apisium.ems.services.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,8 +21,13 @@ public final class EmployeeController {
     }
 
     @GetMapping(value = "/employees")
-    public Iterable<Employee> getAllEmployees() {
-        return service.getAllEmployees();
+    public Page<Employee> getAllEmployees(Pageable pageable) {
+        try {
+            return service.getAllEmployees(pageable);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @DeleteMapping(value = "/employees")
@@ -51,7 +58,7 @@ public final class EmployeeController {
             if (data.avatar() == null) return Result.error("Avatar is null");
             var e = service.getEmployee(data.id());
             if (e == null) return Result.error("Employee not found");
-            e.setStaff_picture(data.avatar());
+            e.setStaffPicture(data.avatar());
             service.updateEmployee(e);
             return Result.success(null);
         } catch (Exception e) {
@@ -64,7 +71,7 @@ public final class EmployeeController {
     public Result<Object> createEmployee() {
         try {
             var employee = new Employee();
-            employee.setStaff_name("New Employee");
+            employee.setStaffName("New Employee");
             service.updateEmployee(employee);
             return Result.success(null);
         } catch (Exception e) {

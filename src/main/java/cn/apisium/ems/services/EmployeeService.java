@@ -3,6 +3,8 @@ package cn.apisium.ems.services;
 import cn.apisium.ems.dao.EmployeeDao;
 import cn.apisium.ems.models.Employee;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,8 +16,8 @@ public final class EmployeeService {
         this.employeeDao = employeeDao;
     }
 
-    public Iterable<Employee> getAllEmployees() {
-        return employeeDao.findAll();
+    public Page<Employee> getAllEmployees(Pageable pageable) {
+        return employeeDao.findAll(pageable);
     }
 
     public void deleteEmployees(Iterable<Integer> ids) {
