@@ -1,6 +1,7 @@
 package cn.apisium.ems.controllers;
 
 import cn.apisium.ems.data.DeleteEmployeesRequest;
+import cn.apisium.ems.data.EmployeeAvatarRequest;
 import cn.apisium.ems.data.Result;
 import cn.apisium.ems.models.Employee;
 import cn.apisium.ems.services.EmployeeService;
@@ -36,6 +37,21 @@ public final class EmployeeController {
     public Result<Object> patchEmployee(@RequestBody Employee employee) {
         try {
             service.updateEmployee(employee);
+            return Result.success(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error(e.getMessage());
+        }
+    }
+
+    @PostMapping(value = "/employee/avatar")
+    public Result<Object> patchEmployeeAvatar(@RequestBody EmployeeAvatarRequest data) {
+        try {
+            if (data.avatar() == null) return Result.error("Avatar is null");
+            var e = service.getEmployee(data.id());
+            if (e == null) return Result.error("Employee not found");
+            e.setStaff_picture(data.avatar());
+            service.updateEmployee(e);
             return Result.success(null);
         } catch (Exception e) {
             e.printStackTrace();

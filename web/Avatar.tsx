@@ -1,5 +1,5 @@
 import React from 'react'
-import Avatar from '@mui/material/Avatar'
+import Avatar, { AvatarProps } from '@mui/material/Avatar'
 import * as colors from '@mui/material/colors'
 
 const colorsArray: string[] = []
@@ -15,10 +15,10 @@ function stringToColor (string: string) {
   return colorsArray[Math.abs(hash % colorsArray.length)]
 }
 
-const AvatarComp: React.FC<{ name: string, url?: string }> = ({ url, name = '' }) => url
-  ? <Avatar src={url} alt={name} sx={{ width: 38, height: 38 }} />
-  : (<Avatar sx={{ bgcolor: stringToColor(name), width: 38, height: 38 }}>
-    {name.split(' ')[0][0]}{(name.split(' ')[1] || '')[0]}
+const AvatarComp: React.FC<AvatarProps & { alt: string, src?: string }> = props => props.src
+  ? <Avatar {...props} sx={{ ...props.sx, width: 38, height: 38 }} />
+  : (<Avatar {...props} sx={{ ...props.sx, bgcolor: stringToColor(props.alt || ''), width: 38, height: 38 }}>
+    {(props.alt || '').split(' ')[0][0]}{((props.alt || '').split(' ')[1] || '')[0]}
   </Avatar>)
 
 export default AvatarComp

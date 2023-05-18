@@ -25,4 +25,8 @@ public final class EmployeeService {
     public void updateEmployee(Employee employee) {
         employeeDao.save(employee);
     }
+
+    public Employee getEmployee(int id) {
+        return employeeDao.findById(id).orElse(null);
+    }
 }

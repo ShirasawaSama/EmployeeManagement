@@ -3,11 +3,17 @@ import { alpha } from '@mui/material/styles'
 import { useSnackbar, SnackbarKey } from 'notistack'
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid'
 import Avatar from './Avatar'
+import AvatarEditor from 'react-avatar-edit'
 import Paper from '@mui/material/Paper'
 import Typography from '@mui/material/Typography'
 import Toolbar from '@mui/material/Toolbar'
 import Tooltip from '@mui/material/Tooltip'
+import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
 
@@ -31,6 +37,8 @@ const mapGender = (value: string) => {
 
 const Users: React.FC = () => {
   const [employees, setEmployees] = useState<Emplyee[]>([])
+  const [avatar, setAvatar] = useState<string | null>(null)
+  const [avatarId, setAvatarId] = useState<number>()
   const [isLoading, setLoading] = useState(true)
   const [selected, setSelected] = useState<number[]>([])
   const [snack, setSnack] = useState<SnackbarKey | null>(null)
@@ -60,7 +68,15 @@ const Users: React.FC = () => {
       disableColumnMenu: true,
       filterable: false,
       hideSortIcons: true,
-      renderCell: ({ row }) => (<Avatar name={row.staff_name} url={row.staff_picture} />)
+      renderCell: ({ row }) => (<Avatar
+        sx={{ cursor: 'pointer' }}
+        alt={row.staff_name}
+        src={row.staff_picture}
+        onClick={() => {
+          setAvatar(null)
+          setAvatarId(row.staff_id)
+        }}
+      />)
     },
     {
       field: 'staff_name',
@@ -203,6 +219,50 @@ const Users: React.FC = () => {
           return e
         }}
       />
+
+      <Dialog open={avatarId != null} onClose={() => setAvatarId(undefined)}>
+        <DialogTitle>上传头像</DialogTitle>
+        <DialogContent>
+          <AvatarEditor
+            width={300}
+            height={300}
+            onCrop={setAvatar}
+            onClose={() => setAvatar(null)}
+            onBeforeFileLoad={e => {
+              const files = e.target.files
+              if (files && files[0].size > 1024 * 1024) {
+                enqueueSnackbar('文件过大!', { variant: 'error' })
+                e.preventDefault()
+              }
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAvatarId(undefined)}>取消</Button>
+          <Button
+            disabled={!avatar}
+            onClick={() => {
+              setLoading(true)
+              setAvatarId(undefined)
+              const notify = enqueueSnackbar('上传中...', { variant: 'info', persist: true })
+              fetch('/api/employee/avatar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: avatarId, avatar })
+              }).then(it => it.json()).then(it => {
+                if (it.error) throw new Error(it.error)
+                fetchData()
+                enqueueSnackbar('上传成功!', { variant: 'success' })
+              }).catch(() => {
+                enqueueSnackbar('上传失败!', { variant: 'error' })
+              }).finally(() => {
+                closeSnackbar(notify)
+                setLoading(false)
+              })
+            }}
+          >确定</Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   )
 }
