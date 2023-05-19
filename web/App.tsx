@@ -6,7 +6,7 @@ import Employees from './Employees'
 
 const App: React.FC = () => (
   <Container maxWidth='lg'>
-    <Typography variant='h4' sx={{ mb: '8px' }}>员工信息管理系统</Typography>
+    <Typography variant='h4' sx={{ mb: '8px' }}>Employee Management System</Typography>
     <Employees />
   </Container>
 )

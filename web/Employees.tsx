@@ -4,6 +4,7 @@ import { useSnackbar, SnackbarKey } from 'notistack'
 import { DataGrid, GridColDef, GridToolbar, GridSortItem } from '@mui/x-data-grid'
 import Avatar from './Avatar'
 import AvatarEditor from 'react-avatar-edit'
+import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
 import Typography from '@mui/material/Typography'
 import Toolbar from '@mui/material/Toolbar'
@@ -46,7 +47,7 @@ interface PageData {
   }
 }
 
-const GENDER_MAP = ['女', '男']
+const GENDER_MAP = ['female', 'male']
 const mapGender = (value: string) => {
   if (!isNaN(+value)) return +value
   const i = GENDER_MAP.indexOf(value)
@@ -82,7 +83,7 @@ const Users: React.FC = () => {
       setLoading(false)
     } catch (e) {
       console.error(e)
-      enqueueSnackbar('获取数据失败!', { variant: 'error' })
+      enqueueSnackbar('Failed to fetch data!', { variant: 'error' })
     }
   }
 
@@ -92,30 +93,36 @@ const Users: React.FC = () => {
     { field: 'staffId', headerName: 'ID', width: 50, filterable: false },
     {
       field: 'staffPicture',
-      headerName: '头像',
-      width: 60,
+      headerName: 'Avatar',
+      width: 62,
       disableColumnMenu: true,
       filterable: false,
       hideSortIcons: true,
-      renderCell: ({ row, value }) => (<Avatar
-        sx={{ cursor: 'pointer' }}
-        alt={row.staffName}
-        src={value}
-        onClick={() => {
-          setAvatar(null)
-          setAvatarId(row.staffId)
-        }}
-      />)
+      renderCell: ({ row, value }) => (<Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        width: '100%'
+      }}>
+        <Avatar
+          sx={{ cursor: 'pointer' }}
+          alt={row.staffName}
+          src={value}
+          onClick={() => {
+            setAvatar(null)
+            setAvatarId(row.staffId)
+          }}
+        />
+      </Box>)
     },
     {
       field: 'staffName',
-      headerName: '姓名',
+      headerName: 'Name',
       width: 120,
       editable: true
     },
     {
       field: 'staffAge',
-      headerName: '年龄',
+      headerName: 'Age',
       width: 70,
       type: 'number',
       editable: true,
@@ -123,8 +130,8 @@ const Users: React.FC = () => {
     },
     {
       field: 'staffGender',
-      headerName: '性别',
-      width: 50,
+      headerName: 'Gender',
+      width: 100,
       valueGetter: ({ value }) => GENDER_MAP.includes(value) ? value : GENDER_MAP[(value % 2) || 0],
       editable: true,
       valueParser: mapGender,
@@ -132,19 +139,19 @@ const Users: React.FC = () => {
     },
     {
       field: 'staffEducation',
-      headerName: '学历',
+      headerName: 'Education',
       width: 200,
       editable: true
     },
     {
       field: 'staffDepartment',
-      headerName: '部门',
+      headerName: 'Department',
       width: 200,
       editable: true
     },
     {
       field: 'staffJob',
-      headerName: '职位',
+      headerName: 'Job',
       width: 200,
       editable: true
     }
@@ -167,15 +174,15 @@ const Users: React.FC = () => {
           id="tableTitle"
           component="div"
         >
-          员工管理
+          Emplyees
         </Typography>
         {numSelected > 0
-          ? (<Tooltip title="删除">
+          ? (<Tooltip title='Delete'>
             <IconButton
               disabled={snack !== null}
               onClick={async () => {
                 setLoading(true)
-                const notify = enqueueSnackbar('删除中...', { variant: 'info', persist: true })
+                const notify = enqueueSnackbar('Deleting...', { variant: 'info', persist: true })
                 setSnack(notify)
                 try {
                   await fetch('/api/employees', {
@@ -186,9 +193,9 @@ const Users: React.FC = () => {
                     if (it.error) throw new Error(it.error)
                   })
                   fetchData()
-                  enqueueSnackbar('操作成功!', { variant: 'success' })
+                  enqueueSnackbar('Deleted successfully!', { variant: 'success' })
                 } catch (e) {
-                  enqueueSnackbar('操作失败!', { variant: 'error' })
+                  enqueueSnackbar('Failed to delete!', { variant: 'error' })
                 }
                 setSnack(null)
                 closeSnackbar(notify)
@@ -198,19 +205,19 @@ const Users: React.FC = () => {
               <DeleteIcon />
             </IconButton>
           </Tooltip>)
-          : (<Tooltip title="添加">
+          : (<Tooltip title='Add'>
             <IconButton
               onClick={() => {
                 setLoading(true)
                 fetch('/api/employee', { method: 'PUT' }).then(it => it.json()).then(it => {
                   if (it.error) {
                     console.error(it.error)
-                    enqueueSnackbar('创建失败!', { variant: 'error' })
+                    enqueueSnackbar('Failed to create!', { variant: 'error' })
                     return
                   }
                   return fetchData().then(() => {
                     setPaginationModel(({ pageSize }) => ({ pageSize, page: Math.ceil(employees.length / pageSize) - 1 }))
-                    enqueueSnackbar('创建成功!', { variant: 'success' })
+                    enqueueSnackbar('Created successfully!', { variant: 'success' })
                   })
                 }).finally(() => setLoading(false))
               }}
@@ -257,7 +264,7 @@ const Users: React.FC = () => {
           }).then(it => it.json()).then(it => {
             if (it.error) {
               console.error(it.error)
-              enqueueSnackbar('更新失败!', { variant: 'error' })
+              enqueueSnackbar('Save failed!', { variant: 'error' })
             }
           }).catch(console.error)
           return e
@@ -265,7 +272,7 @@ const Users: React.FC = () => {
       />
 
       <Dialog open={avatarId != null} onClose={() => setAvatarId(undefined)}>
-        <DialogTitle>上传头像</DialogTitle>
+        <DialogTitle>Upload Avatar</DialogTitle>
         <DialogContent>
           <AvatarEditor
             width={300}
@@ -275,20 +282,20 @@ const Users: React.FC = () => {
             onBeforeFileLoad={e => {
               const files = e.target.files
               if (files && files[0].size > 1024 * 1024) {
-                enqueueSnackbar('文件过大!', { variant: 'error' })
+                enqueueSnackbar('The file is too large!', { variant: 'error' })
                 e.preventDefault()
               }
             }}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAvatarId(undefined)}>取消</Button>
+          <Button onClick={() => setAvatarId(undefined)}>Cancel</Button>
           <Button
             disabled={!avatar}
             onClick={() => {
               setLoading(true)
               setAvatarId(undefined)
-              const notify = enqueueSnackbar('上传中...', { variant: 'info', persist: true })
+              const notify = enqueueSnackbar('Uploading...', { variant: 'info', persist: true })
               fetch('/api/employee/avatar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -296,15 +303,15 @@ const Users: React.FC = () => {
               }).then(it => it.json()).then(it => {
                 if (it.error) throw new Error(it.error)
                 fetchData()
-                enqueueSnackbar('上传成功!', { variant: 'success' })
+                enqueueSnackbar('Upload successful!', { variant: 'success' })
               }).catch(() => {
-                enqueueSnackbar('上传失败!', { variant: 'error' })
+                enqueueSnackbar('Upload failed!', { variant: 'error' })
               }).finally(() => {
                 closeSnackbar(notify)
                 setLoading(false)
               })
             }}
-          >确定</Button>
+          >Ok</Button>
         </DialogActions>
       </Dialog>
     </Paper>
