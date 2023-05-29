@@ -20,6 +20,12 @@ public final class EmployeeController {
         this.service = service;
     }
 
+    /**
+     * Get all employees
+     * @param pageable Pageable
+     * @param keyword Keyword
+     * @return Page<Employee>
+     */
     @GetMapping(value = "/employees")
     public Page<Employee> getAllEmployees(Pageable pageable, @RequestParam(required = false) String keyword) {
         try {
@@ -30,6 +36,11 @@ public final class EmployeeController {
         }
     }
 
+    /**
+     * Delete employees
+     * @param data DeleteEmployeesRequest
+     * @return Result<Object>
+     */
     @DeleteMapping(value = "/employees")
     public Result<Object> deleteEmployees(@RequestBody DeleteEmployeesRequest data) {
         try {
@@ -41,6 +52,11 @@ public final class EmployeeController {
         }
     }
 
+    /**
+     * Update employee
+     * @param employee Employee
+     * @return Result<Object>
+     */
     @PatchMapping(value = "/employee")
     public Result<Object> patchEmployee(@RequestBody Employee employee) {
         try {
@@ -52,6 +68,11 @@ public final class EmployeeController {
         }
     }
 
+    /**
+     * Update employee avatar
+     * @param data EmployeeAvatarRequest
+     * @return Result<Object>
+     */
     @PostMapping(value = "/employee/avatar")
     public Result<Object> patchEmployeeAvatar(@RequestBody EmployeeAvatarRequest data) {
         try {
@@ -67,6 +88,10 @@ public final class EmployeeController {
         }
     }
 
+    /**
+     * Create new employee
+     * @return Result<Object>
+     */
     @PutMapping(value = "/employee")
     public Result<Object> createEmployee() {
         try {
